@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Retrieve API key from environment variables
-api_key = os.getenv('API_KEY')
+api_key = os.getenv('AIPROXY_TOKEN')
 
 def encode_image(image_path):
     """
