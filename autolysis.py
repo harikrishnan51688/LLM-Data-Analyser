@@ -9,6 +9,7 @@
 #   "matplotlib",
 #   "chardet",
 #   "python-dotenv",
+#   "tenacity"
 # ]
 # ///
 
@@ -22,6 +23,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import chardet
 import base64
+from tenacity import retry, stop_after_attempt
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -46,7 +48,8 @@ def encode_image(image_path):
     except Exception as e:
         print(f"Error encoding image: {e}")
         return None
-
+    
+@retry(stop=stop_after_attempt(3))
 def vision_analysis(folder_name, image_name):
     """
     Advanced analysis of the image(chart) using GPT model and append the analysis in a README file.
@@ -110,6 +113,7 @@ def vision_analysis(folder_name, image_name):
     except Exception as e:
         print(f"Error writing to README.md: {e}")
 
+@retry(stop=stop_after_attempt(3))
 def create_visualization(df, column_data, filename):
     """
     Creates various visualizations based on columns suggested by GPT.
@@ -163,6 +167,7 @@ def create_visualization(df, column_data, filename):
     except Exception as e:
         print(f"Error creating visualizations: {e}")
 
+@retry(stop=stop_after_attempt(3))
 def analysis(csv_file):
     """
     Analyzes the provided CSV file, performs advanced data analysis, creates meaningful narrative, creates visualizations, and generates a README file.
@@ -198,7 +203,7 @@ def analysis(csv_file):
         params = {
             "model": "gpt-4o-mini",
             "messages": [
-                {"role": "user", "content": "Analyze the following dataset summary and provide key insights, unique characteristics etc. and analyses in the readme.md format. Give story-like narration with advanced analytics:\n\nFilename: {}\nShape: {}\nColumns: {}\nSummary: {}\nMissing Values: {}\nSample Rows: {}".format(filename, shape, columns, summary, missing_values, sample_rows)}
+                {"role": "user", "content": "Analyze the following dataset summary and provide key insights, unique characteristics etc. and analyses in the readme.md format. Give story-like narration with advanced analytics. (dont include ```markdown```) :\n\nFilename: {}\nShape: {}\nColumns: {}\nSummary: {}\nMissing Values: {}\nSample Rows: {}".format(filename, shape, columns, summary, missing_values, sample_rows)}
             ],
         }
         request = requests.post("https://aiproxy.sanand.workers.dev/openai/v1/chat/completions", headers={
